@@ -1,11 +1,24 @@
 import {query} from "../db.js";
 
 export const getAllPrograms = async (req, res) => {
-
+    if(!req.user_id) return res.status(401).json({ message: 'Unauthenticated' });
     try {
-        console.log("checkpoint1");
         const result = await query('SELECT * FROM programs');
-        console.log(result.rows);
+        // console.log(result.rows);
+        
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error retrieving programs:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
+export const getProgramsByDomain = async (req, res) => {
+    if(!req.user_id) return res.status(401).json({ message: 'Unauthenticated' });
+    const {Domain} = req.query;
+    try {
+        const result = await query('SELECT * FROM programs WHERE "Domain" = $1', [Domain]);
+        // console.log(result.rows);
         
         res.json(result.rows);
     } catch (error) {
@@ -15,11 +28,11 @@ export const getAllPrograms = async (req, res) => {
 }
 
 export const getProgramById = async (req, res) => {
+    if(!req.user_id) return res.status(401).json({ message: 'Unauthenticated' });
     const Program_id = req.params.id;
     try {
-        console.log("checkpoint1");
         const result = await query('SELECT * FROM programs WHERE "Program_id" = $1', [Program_id]);
-        console.log(result.rows);
+        // console.log(result.rows);
         
         res.status(200).json(result.rows);
     } catch (error) {
@@ -29,6 +42,7 @@ export const getProgramById = async (req, res) => {
 }
 
 export const createProgram = async (req, res) => {
+    if(!req.user_id) return res.status(401).json({ message: 'Unauthenticated' });
     const {
         Name,
         Price,
@@ -46,10 +60,9 @@ export const createProgram = async (req, res) => {
       } = req.body;
 
     try {
-        console.log("checkpoint1");
         const result = await query('INSERT INTO programs ("Name", "Price", "Domain", "Program_type", "Registration_open", "Description", "Placement_assurance", "Image_url", "University_name", "Faculty_profile", "Learning_hours", "Certificate_diploma", "Eligibility_criteria", "Last_modified") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, CURRENT_DATE) RETURNING *', [Name, Price, Domain, Program_type, Registration_open, Description, Placement_assurance, Image_url, University_name, Faculty_profile, Learning_hours, Certificate_diploma, Eligibility_criteria]);
 
-        console.log(result.rows);
+        // console.log(result.rows);
         
         res.status(200).json(result.rows);
     } catch (error) {
@@ -59,6 +72,7 @@ export const createProgram = async (req, res) => {
 }
 
 export const updateProgram = async (req, res) => {
+    if(!req.user_id) return res.status(401).json({ message: 'Unauthenticated' });
     const {
         Name,
         Price,
@@ -77,7 +91,6 @@ export const updateProgram = async (req, res) => {
       } = req.body;
 
     try {
-        console.log("checkpoint1");
 
         const checkResult = await query('SELECT * FROM programs WHERE "Program_id" = $1', [Program_id]);
 
@@ -89,9 +102,8 @@ export const updateProgram = async (req, res) => {
 
         const updateResult = await query('UPDATE programs SET "Name" = $1, "Price" = $2, "Domain" = $3, "Program_type" = $4, "Registration_open" = $5, "Description" = $6, "Placement_assurance" = $7, "Image_url" = $8, "University_name" = $9, "Faculty_profile" = $10, "Learning_hours" = $11, "Certificate_diploma" = $12, "Eligibility_criteria" = $13, "Last_modified" = CURRENT_DATE WHERE "Program_id" = $14 RETURNING *', [Name, Price, Domain, Program_type, Registration_open, Description, Placement_assurance, Image_url, University_name, Faculty_profile, Learning_hours, Certificate_diploma, Eligibility_criteria, Program_id]);
 
-        // Retrieve the updated program from the query result
         const updatedProgram = updateResult.rows[0];
-        console.log("updated program: ", updatedProgram);
+        // console.log("updated program: ", updatedProgram);
 
         res.status(200).json({ success: true, message: 'Program updated successfully', program: updatedProgram });
 
@@ -102,10 +114,10 @@ export const updateProgram = async (req, res) => {
 }
 
 export const deleteProgram = async (req, res) => {
+    if(!req.user_id) return res.status(401).json({ message: 'Unauthenticated' });
     const Program_id = req.params.id;
 
     try {
-        console.log("checkpoint1");
         const checkResult = await query('SELECT * FROM programs WHERE "Program_id" = $1', [Program_id]);
 
         if (checkResult.rows.length === 0) {
